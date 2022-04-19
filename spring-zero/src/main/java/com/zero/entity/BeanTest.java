@@ -1,5 +1,6 @@
 package com.zero.entity;
 
+import com.zero.extend.MyClassPathXmlApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
@@ -9,7 +10,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
  */
 public class BeanTest {
 	public static void main(String[] args) {
-		ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext("beans.xml");
+		ClassPathXmlApplicationContext applicationContext = new MyClassPathXmlApplicationContext("beans.xml");
 		User user = (User) applicationContext.getBean("user");
 		System.out.println(user);
 	}

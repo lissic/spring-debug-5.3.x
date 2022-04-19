@@ -12,5 +12,6 @@
 		<property name="id" value="1"/>
 		<property name="name" value="zero"/>
 	</bean>
+	<bean id="beanFactory" class="com.zero.extend.MyBeanFactoryPostProcessor"/>
 
 </beans>
