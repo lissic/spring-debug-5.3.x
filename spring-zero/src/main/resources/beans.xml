@@ -6,12 +6,12 @@
         https://www.springframework.org/schema/beans/spring-beans.xsd
         http://www.springframework.org/schema/aop
         https://www.springframework.org/schema/aop/spring-aop.xsd">
-
+	<import resource="spring-${username}.xml"></import>
 	<!--注册bean-->
-	<bean id="user" class="com.zero.entity.User">
+	<!--<bean id="user" class="com.zero.entity.User">
 		<property name="id" value="1"/>
 		<property name="name" value="zero"/>
 	</bean>
-	<bean id="beanFactory" class="com.zero.extend.MyBeanFactoryPostProcessor"/>
+	<bean class="com.zero.extend.MyBeanFactoryPostProcessor"/>-->
 
 </beans>

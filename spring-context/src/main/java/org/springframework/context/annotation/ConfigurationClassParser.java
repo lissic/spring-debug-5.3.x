@@ -168,8 +168,11 @@ class ConfigurationClassParser {
 
 
 	public void parse(Set<BeanDefinitionHolder> configCandidates) {
+		// 循环遍历configCandidates
 		for (BeanDefinitionHolder holder : configCandidates) {
+			// 获取BeanDefinition
 			BeanDefinition bd = holder.getBeanDefinition();
+			// 根据BeanDefinition类型的不同，调用parse不同的重载方法，实际上最终调用的是processConfigurationClass()方法
 			try {
 				if (bd instanceof AnnotatedBeanDefinition) {
 					parse(((AnnotatedBeanDefinition) bd).getMetadata(), holder.getBeanName());

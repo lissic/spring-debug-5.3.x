@@ -10,7 +10,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
  */
 public class BeanTest {
 	public static void main(String[] args) {
-		ClassPathXmlApplicationContext applicationContext = new MyClassPathXmlApplicationContext("beans.xml");
+		ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext("spring-${username}.xml");
 		User user = (User) applicationContext.getBean("user");
 		System.out.println(user);
 	}

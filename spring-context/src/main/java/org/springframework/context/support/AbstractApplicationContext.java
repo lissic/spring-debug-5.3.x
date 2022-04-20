@@ -39,6 +39,7 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.support.ResourceEditorRegistrar;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -177,6 +178,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	/** Logger used by this class. Available to subclasses. */
 	protected final Log logger = LogFactory.getLog(getClass());
 
+	// 创建spring上下文唯一ID值
 	/** Unique id for this context, if any. */
 	private String id = ObjectUtils.identityToString(this);
 
@@ -244,6 +246,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * Create a new AbstractApplicationContext with no parent.
 	 */
 	public AbstractApplicationContext() {
+		// 创建资源模式处理器，用来解析系统需要资源
 		this.resourcePatternResolver = getResourcePatternResolver();
 	}
 
@@ -484,6 +487,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * @see org.springframework.core.io.support.PathMatchingResourcePatternResolver
 	 */
 	protected ResourcePatternResolver getResourcePatternResolver() {
+		// 创建资源匹配处理器，本质上是处理xml文件
 		return new PathMatchingResourcePatternResolver(this);
 	}
 
@@ -547,11 +551,21 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			StartupStep contextRefresh = this.applicationStartup.start("spring.context.refresh");
 
 			// Prepare this context for refreshing.
-			// 刷新之前的准备工作
+			/*
+			 * 刷新前准备工作：
+			 * 1、获取当前时间为启动时间
+			 * 2、设置spring上下文关闭标识为false
+			 * 3、设置spring上下文激活标识为true
+			 * 4、创建环境：StandardEnvironment
+			 * 5、创建监听器和事件广播器集合
+			 */
 			prepareRefresh();
 
 			// Tell the subclass to refresh the internal bean factory.
-			// 创建容器对象：DefaultListableBeanFactory，加载xml配置文件的属性到当前bean工厂中，生成BeanDefinition，重点在于loadBeanDefinitions()各种重载方法
+			/*
+			 * 创建容器对象：DefaultListableBeanFactory，加载xml配置文件的属性到当前bean工厂中，生成BeanDefinition，
+			 * 重点在于loadBeanDefinitions()各种重载方法
+ 			 */
 			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
 
 			// Prepare the bean factory for use in this context.
@@ -673,6 +687,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * @see #getBeanFactory()
 	 */
 	protected ConfigurableListableBeanFactory obtainFreshBeanFactory() {
+		// 初始化
 		refreshBeanFactory();
 		return getBeanFactory();
 	}
