@@ -1253,6 +1253,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 
 		// No special handling: simply use no-arg constructor.
+		// 使用默认无参构造器创建对象，如果没有无参构造器且存在多个有参构造并且没有@Autowired注解构造，会报错
 		return instantiateBean(beanName, mbd);
 	}
 
@@ -1325,6 +1326,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			throws BeansException {
 
 		if (beanClass != null && hasInstantiationAwareBeanPostProcessors()) {
+			// 从SmartInstantiationAwareBeanPostProcessor判断
 			for (SmartInstantiationAwareBeanPostProcessor bp : getBeanPostProcessorCache().smartInstantiationAware) {
 				Constructor<?>[] ctors = bp.determineCandidateConstructors(beanClass, beanName);
 				if (ctors != null) {
