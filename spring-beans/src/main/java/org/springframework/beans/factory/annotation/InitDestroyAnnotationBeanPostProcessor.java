@@ -100,9 +100,11 @@ public class InitDestroyAnnotationBeanPostProcessor
 
 	protected transient Log logger = LogFactory.getLog(getClass());
 
+	// CommonAnnotationBeanPostProcessor初始化时进行赋值操作
 	@Nullable
 	private Class<? extends Annotation> initAnnotationType;
 
+	// CommonAnnotationBeanPostProcessor初始化时进行赋值操作
 	@Nullable
 	private Class<? extends Annotation> destroyAnnotationType;
 
