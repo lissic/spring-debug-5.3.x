@@ -609,7 +609,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 				logger.trace("Eagerly caching bean '" + beanName +
 						"' to allow for resolving potential circular references");
 			}
-			// 为避免后期循环依赖，可以再bean初始化完成前将创建实例的objectFactory加入工厂
+			// 为避免后期循环依赖，可以在bean初始化完成前将创建实例的objectFactory加入到三级缓存
 			addSingletonFactory(beanName, () -> getEarlyBeanReference(beanName, mbd, bean));
 		}
 
@@ -618,8 +618,9 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		Object exposedObject = bean;
 		try {
 			// 对bean的属性进行填充，将各个属性值注入，其中，可能存在依赖于其他bean的属性，则会递归初始化依赖的bean
+			// 属性填充
 			populateBean(beanName, mbd, instanceWrapper);
-			// 执行初始化逻辑
+			// 执行初始化逻辑：处理aware接口、处理beanPostProcessor的before方法，处理init-method方法、处理beanPostProcessor的after方法
 			exposedObject = initializeBean(beanName, exposedObject, mbd);
 		}
 		catch (Throwable ex) {
