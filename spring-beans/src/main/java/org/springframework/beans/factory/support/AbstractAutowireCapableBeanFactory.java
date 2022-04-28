@@ -1504,14 +1504,20 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 				pvs = pvsToUse;
 			}
 		}
+		// 如果需要依赖检查
 		if (needsDepCheck) {
+			// 如果filteredPds为空
 			if (filteredPds == null) {
+				// 从bw提取一组经过筛选的PropertyDescriptor，排除忽略的依赖项或忽略项上的定义的属性
 				filteredPds = filterPropertyDescriptorsForDependencyCheck(bw, mbd.allowCaching);
 			}
+			// 检查依赖项：主要检查pd的setter方法需要赋值时，pvs种有没有满足其pd的需求的属性值可供其赋值
 			checkDependencies(beanName, mbd, filteredPds, pvs);
 		}
 
+		// 如果pvs不为null
 		if (pvs != null) {
+			// 应用给定的属性值，解决任何这个bean工厂运行时其他bean的应用，必须经过深拷贝，所以不会永久的修改这个属性
 			applyPropertyValues(beanName, mbd, bw, pvs);
 		}
 	}
