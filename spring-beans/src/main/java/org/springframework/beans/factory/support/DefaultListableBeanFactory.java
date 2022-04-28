@@ -1298,23 +1298,42 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	public Object resolveDependency(DependencyDescriptor descriptor, @Nullable String requestingBeanName,
 			@Nullable Set<String> autowiredBeanNames, @Nullable TypeConverter typeConverter) throws BeansException {
 
+		/**
+		 *
+		 * 获取工厂的参数名发现器，设置到descriptor中，使得descriptor初始化基础方法参数的参数名发现。此时，该方法
+		 * 实际上并没有尝试检查参数名称，它仅允许发现医用程序调用getDependencyname时发生
+ 		 */
 		descriptor.initParameterNameDiscovery(getParameterNameDiscoverer());
+		// 如果descriptor的以来类型Optional类
 		if (Optional.class == descriptor.getDependencyType()) {
+			// 创建Optional类型的符合descriptor要求的候选Bean对象
 			return createOptionalDependency(descriptor, requestingBeanName);
 		}
+		// 是对象工厂类型或者对象提供者
 		else if (ObjectFactory.class == descriptor.getDependencyType() ||
 				ObjectProvider.class == descriptor.getDependencyType()) {
+			// DependencyObjectProvider：依赖对象提供者，用于延迟解析依赖项
+			// 新建一个DependencyObjectProvider的实例
 			return new DependencyObjectProvider(descriptor, requestingBeanName);
 		}
+		// javaxInjectProviderClass有可能导致空指针，不过一般情况下，我们引用Spring包的时候都有引入该类型以防止空指针
+		// 如果以来类型是javax.inject.Provider类
 		else if (javaxInjectProviderClass == descriptor.getDependencyType()) {
+			// JSR330Provider：javax.inject.Provider实现类，与DependencyObjectProvider作用一样，也是用于延迟解析依赖项
+			// 但它是使用javax.inject.Provider作为依赖对象，以减少与Spring耦合
+			// 新建一个专门用于构建javax.inject.Provider对象的工厂来创建Jsr330对象
 			return new Jsr330Factory().createDependencyProvider(descriptor, requestingBeanName);
 		}
 		else {
+			// 尝试获取延迟加载代理对象
 			Object result = getAutowireCandidateResolver().getLazyResolutionProxyIfNecessary(
 					descriptor, requestingBeanName);
+			// 如果result为null，即表示现在需要得到候选Bean对象
 			if (result == null) {
+				// 解析出与descriptor所包装的对象匹配候选Bean对象
 				result = doResolveDependency(descriptor, requestingBeanName, autowiredBeanNames, typeConverter);
 			}
+			//
 			return result;
 		}
 	}
