@@ -323,13 +323,18 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	 * @return a proxy wrapping the bean, or the raw bean instance as-is
 	 */
 	protected Object wrapIfNecessary(Object bean, String beanName, Object cacheKey) {
+		// 如果已经处理过，直接返回
 		if (StringUtils.hasLength(beanName) && this.targetSourcedBeans.contains(beanName)) {
 			return bean;
 		}
+		// 这里advisedBeans缓存了已经进行了代理的bean，如果缓存中存在，则可以直接返回
 		if (Boolean.FALSE.equals(this.advisedBeans.get(cacheKey))) {
 			return bean;
 		}
+		// 这里isInfrastructureClass()用于判断当前bean是否为Spring系统自带的bean，自带的bean是不用进行代理的
+		// should Skip()则用于判断当前bean是否应该被忽略
 		if (isInfrastructureClass(bean.getClass()) || shouldSkip(bean.getClass(), beanName)) {
+			// 对当前bean进行混村
 			this.advisedBeans.put(cacheKey, Boolean.FALSE);
 			return bean;
 		}

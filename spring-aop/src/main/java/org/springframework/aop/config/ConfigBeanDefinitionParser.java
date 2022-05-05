@@ -103,8 +103,10 @@ class ConfigBeanDefinitionParser implements BeanDefinitionParser {
 				new CompositeComponentDefinition(element.getTagName(), parserContext.extractSource(element));
 		parserContext.pushContainingComponent(compositeDef);
 
+		// 注册自动代理模式创建器
 		configureAutoProxyCreator(parserContext, element);
 
+		// 解析aop:config子节点下的aop:pointcut/aop:advice/aop:aspect
 		List<Element> childElts = DomUtils.getChildElements(element);
 		for (Element elt: childElts) {
 			String localName = parserContext.getDelegate().getLocalName(elt);
@@ -196,7 +198,9 @@ class ConfigBeanDefinitionParser implements BeanDefinitionParser {
 	}
 
 	private void parseAspect(Element aspectElement, ParserContext parserContext) {
+		// <aop:aspect> id属性
 		String aspectId = aspectElement.getAttribute(ID);
+		// aop ref属性，必须配置，代表切面
 		String aspectName = aspectElement.getAttribute(REF);
 
 		try {
@@ -204,6 +208,8 @@ class ConfigBeanDefinitionParser implements BeanDefinitionParser {
 			List<BeanDefinition> beanDefinitions = new ArrayList<>();
 			List<BeanReference> beanReferences = new ArrayList<>();
 
+			// 解析<aop:aspect>下的declare-parents节点
+			// 采用的DeclareParentsAdvisor作为beanClass加载
 			List<Element> declareParents = DomUtils.getChildElementsByTagName(aspectElement, DECLARE_PARENTS);
 			for (int i = METHOD_INDEX; i < declareParents.size(); i++) {
 				Element declareParentsElement = declareParents.get(i);
@@ -233,6 +239,7 @@ class ConfigBeanDefinitionParser implements BeanDefinitionParser {
 				}
 			}
 
+			// 解析advice节点并注册到beanFactory中
 			AspectComponentDefinition aspectComponentDefinition = createAspectComponentDefinition(
 					aspectElement, aspectId, beanDefinitions, beanReferences, parserContext);
 			parserContext.pushContainingComponent(aspectComponentDefinition);
