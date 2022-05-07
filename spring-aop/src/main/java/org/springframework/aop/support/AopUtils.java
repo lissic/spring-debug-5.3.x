@@ -281,11 +281,16 @@ public abstract class AopUtils {
 	 * @return whether the pointcut can apply on any method
 	 */
 	public static boolean canApply(Advisor advisor, Class<?> targetClass, boolean hasIntroductions) {
+		// 如果是IntroductionAdvisor的话，则调用IntroductionAdvisor类型的实例进行类的过滤
+		// 这里是直接调用ClassFilter的matches方法
 		if (advisor instanceof IntroductionAdvisor) {
 			return ((IntroductionAdvisor) advisor).getClassFilter().matches(targetClass);
 		}
+		// 通常Advisor都是PointcutAdvisor类型
 		else if (advisor instanceof PointcutAdvisor) {
+			// 转为PointcutAdvisor类型
 			PointcutAdvisor pca = (PointcutAdvisor) advisor;
+			// 这里从Advisor中获取Pointcut的实现类，这里是AspectJExpressionPointcut
 			return canApply(pca.getPointcut(), targetClass, hasIntroductions);
 		}
 		else {
@@ -303,21 +308,28 @@ public abstract class AopUtils {
 	 * (may be the incoming List as-is)
 	 */
 	public static List<Advisor> findAdvisorsThatCanApply(List<Advisor> candidateAdvisors, Class<?> clazz) {
+		// 若候选的增强器集合为空，直接返回
 		if (candidateAdvisors.isEmpty()) {
 			return candidateAdvisors;
 		}
+		// 定义一个合适的增强器集合对象
 		List<Advisor> eligibleAdvisors = new ArrayList<>();
+		// 循环候选的增强器对象
 		for (Advisor candidate : candidateAdvisors) {
+			// 判断增强器对象是否实现了IntroductionAdvisor
 			if (candidate instanceof IntroductionAdvisor && canApply(candidate, clazz)) {
 				eligibleAdvisors.add(candidate);
 			}
 		}
+		// 是否有引介增强
 		boolean hasIntroductions = !eligibleAdvisors.isEmpty();
 		for (Advisor candidate : candidateAdvisors) {
+			// 判断增强器对象是否实现了IntroductionAdvisor
 			if (candidate instanceof IntroductionAdvisor) {
 				// already processed
 				continue;
 			}
+			// 真正的判断增强器是否合适当前类型
 			if (canApply(candidate, clazz, hasIntroductions)) {
 				eligibleAdvisors.add(candidate);
 			}
