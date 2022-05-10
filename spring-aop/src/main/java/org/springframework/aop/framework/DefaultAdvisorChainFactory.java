@@ -53,6 +53,9 @@ public class DefaultAdvisorChainFactory implements AdvisorChainFactory, Serializ
 
 		// This is somewhat tricky... We have to process introductions first,
 		// but we need to preserve order in the ultimate list.
+		// 这里用了单例模式获取GlobalAdvisorAdapterRegistry实例
+		// 在Spring中把每一个功能都分的很细，每个功能都会有相应的类去处理，符合单一职责原则的地方很多
+		// AdvisorAdapterRegistry这个类的主要作用是将Advice适配为Advisor，讲Advisor适配为对应的MethodInterceptor
 		AdvisorAdapterRegistry registry = GlobalAdvisorAdapterRegistry.getInstance();
 		Advisor[] advisors = config.getAdvisors();
 		List<Object> interceptorList = new ArrayList<>(advisors.length);
@@ -81,7 +84,7 @@ public class DefaultAdvisorChainFactory implements AdvisorChainFactory, Serializ
 						match = mm.matches(method, actualClass);
 					}
 					if (match) {
-						// 拦截器链是通过AdvisorAdapterRegistry来加入的，这个AdvisorAdapterRegistry对advice植入具备很大的作用
+						// 拦截器链是通过AdvisorAdapterRegistry来加入的，这个AdvisorAdapterRegistry对advice织入具备很大的作用
 						MethodInterceptor[] interceptors = registry.getInterceptors(advisor);
 						// 使用MethodMatchers的matches方法进行匹配判断
 						if (mm.isRuntime()) {
