@@ -388,7 +388,9 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 			throws BeanDefinitionStoreException {
 
 		try {
+			// 将配置文件解析为document对象，方便标签元素的解析
 			Document doc = doLoadDocument(inputSource, resource);
+			// 注册配置文件到容器中
 			int count = registerBeanDefinitions(doc, resource);
 			if (logger.isDebugEnabled()) {
 				logger.debug("Loaded " + count + " bean definitions from " + resource);

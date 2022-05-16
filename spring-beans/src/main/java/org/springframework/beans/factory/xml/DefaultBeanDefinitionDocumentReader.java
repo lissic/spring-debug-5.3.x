@@ -161,6 +161,7 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 	}
 
 	/**
+	 * 解析BeanDefinitions，分为spring中默认的bean标签和自定义标签（包括spring自定义和用户自定义）
 	 * Parse the elements at the root level in the document:
 	 * "import", "alias", "bean".
 	 * @param root the DOM root element of the document
@@ -173,9 +174,11 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 				if (node instanceof Element) {
 					Element ele = (Element) node;
 					if (delegate.isDefaultNamespace(ele)) {
+						// 解析beans命名空间的标签元素
 						parseDefaultElement(ele, delegate);
 					}
 					else {
+						// 解析其他命名空间的标签元素
 						delegate.parseCustomElement(ele);
 					}
 				}
