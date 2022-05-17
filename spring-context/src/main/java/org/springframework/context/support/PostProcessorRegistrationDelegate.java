@@ -330,7 +330,7 @@ final class PostProcessorRegistrationDelegate {
 				internalPostProcessors.add(pp);
 			}
 		}
-		// 注册美哟实现PriorityOrdered和Ordered的BeanPostprocessor实例添加到beanFactory中
+		// 注册没有实现PriorityOrdered和Ordered的BeanPostprocessor实例添加到beanFactory中
 		registerBeanPostProcessors(beanFactory, nonOrderedPostProcessors);
 
 		// Finally, re-register all internal BeanPostProcessors.
