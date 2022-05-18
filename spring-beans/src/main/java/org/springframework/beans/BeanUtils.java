@@ -200,6 +200,7 @@ public abstract class BeanUtils {
 				Class<?>[] parameterTypes = ctor.getParameterTypes();
 				Assert.isTrue(args.length <= parameterTypes.length, "Can't specify more arguments than constructor parameters");
 				Object[] argsWithDefaultValues = new Object[args.length];
+				// 获取解析参数
 				for (int i = 0 ; i < args.length; i++) {
 					if (args[i] == null) {
 						Class<?> parameterType = parameterTypes[i];
@@ -209,6 +210,7 @@ public abstract class BeanUtils {
 						argsWithDefaultValues[i] = args[i];
 					}
 				}
+				// 通过反射生成对象
 				return ctor.newInstance(argsWithDefaultValues);
 			}
 		}
