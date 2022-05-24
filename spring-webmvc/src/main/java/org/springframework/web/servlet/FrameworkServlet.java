@@ -707,21 +707,28 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 			}
 		}
 
+		// 设置wac的servletContext、servletConfig、namespace属性
 		wac.setServletContext(getServletContext());
 		wac.setServletConfig(getServletConfig());
 		wac.setNamespace(getNamespace());
+		// 添加监听器sourceFilteringListener到wac中，实际监听的是ContextRefreshListener所监听的事件，监听ContextRefreshedEvent事件
+		// 当接受到消息之后会调用onApplicationEvent方法，调用onRefresh方法，并将refreshEventReceived标志设置为true，表示已经refresh过
 		wac.addApplicationListener(new SourceFilteringListener(wac, new ContextRefreshListener()));
 
 		// The wac environment's #initPropertySources will be called in any case when the context
 		// is refreshed; do it eagerly here to ensure servlet property sources are in place for
 		// use in any post-processing or initialization that occurs below prior to #refresh
+		// 获取环境对象并且添加相关属性
 		ConfigurableEnvironment env = wac.getEnvironment();
 		if (env instanceof ConfigurableWebEnvironment) {
 			((ConfigurableWebEnvironment) env).initPropertySources(getServletContext(), getServletConfig());
 		}
 
+		// 执行处理完WebApplicationContext后的逻辑，此处为空方法，不做任何实现
 		postProcessWebApplicationContext(wac);
+		// 执行自定义初始化context
 		applyInitializers(wac);
+		// 刷新wac，从而初始化wac
 		wac.refresh();
 	}
 
