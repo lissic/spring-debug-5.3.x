@@ -486,6 +486,7 @@ public class DispatcherServlet extends FrameworkServlet {
 	 */
 	@Override
 	protected void onRefresh(ApplicationContext context) {
+		// springmvc中的九大组件初始化
 		initStrategies(context);
 	}
 
@@ -494,14 +495,23 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * <p>May be overridden in subclasses in order to initialize further strategy objects.
 	 */
 	protected void initStrategies(ApplicationContext context) {
+		// 初始化MultipartResolver：主要用来处理文件上传，如果定义过当前类型的bean对象，那么直接过去，如果没有的话，可以为null
 		initMultipartResolver(context);
+		// 初始化LocalResolver：主要用来处理国际化配置，基于URL参数的配置（AcceptHeaderLocalResolver），基于session的配置（SessionLocalResolver）基于cookie的（CookieLocalResolver）
 		initLocaleResolver(context);
+		// 初始化ThemeResolver：主要用来设置主题Theme
 		initThemeResolver(context);
+		// 初始化HandlerMapping：映射器，用来将对应request跟controller进行对应
 		initHandlerMappings(context);
+		// 初始化HandlerAdapter：处理器适配器，主要包含http请求处理器适配器，简单控制器处理器是配置，注解方法处理器适配器
 		initHandlerAdapters(context);
+		// 初始化HandlerExceptionResolver：基于HandlerExceptionResolver接口的异常处理
 		initHandlerExceptionResolvers(context);
+		// 初始化RequestToViewNameTranslator：当controller处理器方法没有返回一个View对象或者逻辑视图名称，并且该方法中没有直接往response的输出流里写数据的时候
 		initRequestToViewNameTranslator(context);
+		// 初始化ViewResolver：将ModelAndView选择合适的视图进行渲染的处理器
 		initViewResolvers(context);
+		// 初始化FlashMapManager:提供请求存储属性，可供其他请求使用
 		initFlashMapManager(context);
 	}
 
