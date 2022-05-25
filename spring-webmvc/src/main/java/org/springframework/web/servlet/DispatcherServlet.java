@@ -1040,7 +1040,7 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * @throws Exception in case of any kind of processing failure
 	 */
 	protected void doDispatch(HttpServletRequest request, HttpServletResponse response) throws Exception {
-		// 实际处理时所用的热曲饿色特，如果不是上传请求，则直接使用接受到的request，否则封装成上传类型的request
+		// 实际处理时所用的request，如果不是上传请求，则直接使用接受到的request，否则封装成上传类型的request
 		HttpServletRequest processedRequest = request;
 		// 处理请求的处理器链（包含处理器和对应的interceptor）
 		HandlerExecutionChain mappedHandler = null;
@@ -1131,6 +1131,7 @@ public class DispatcherServlet extends FrameworkServlet {
 					new NestedServletException("Handler processing failed", err));
 		}
 		finally {
+			// 判断是否执行异步请求
 			if (asyncManager.isConcurrentHandlingStarted()) {
 				// Instead of postHandle and afterCompletion
 				if (mappedHandler != null) {
@@ -1139,6 +1140,7 @@ public class DispatcherServlet extends FrameworkServlet {
 			}
 			else {
 				// Clean up any resources used by a multipart request.
+				// 删除上传请求的资源
 				if (multipartRequestParsed) {
 					cleanupMultipart(processedRequest);
 				}
