@@ -932,10 +932,12 @@ public class DispatcherServlet extends FrameworkServlet {
 	 */
 	@Override
 	protected void doService(HttpServletRequest request, HttpServletResponse response) throws Exception {
+		// 如果日志级别为DEBUG，则打印请求日志
 		logRequest(request);
 
 		// Keep a snapshot of the request attributes in case of an include,
 		// to be able to restore the original attributes after the include.
+		// 当include请求时对request的Attribute做快照备份
 		Map<String, Object> attributesSnapshot = null;
 		if (WebUtils.isIncludeRequest(request)) {
 			attributesSnapshot = new HashMap<>();
@@ -949,11 +951,15 @@ public class DispatcherServlet extends FrameworkServlet {
 		}
 
 		// Make framework objects available to handlers and view objects.
+		// 设置Spring框架中的常用对象到request属性中，这四个属性会在handler和view中使用
 		request.setAttribute(WEB_APPLICATION_CONTEXT_ATTRIBUTE, getWebApplicationContext());
 		request.setAttribute(LOCALE_RESOLVER_ATTRIBUTE, this.localeResolver);
 		request.setAttribute(THEME_RESOLVER_ATTRIBUTE, this.themeResolver);
 		request.setAttribute(THEME_SOURCE_ATTRIBUTE, getThemeSource());
 
+		// FlashMap的相关配置，主要用于Redirect转发时参数的传递，此处有一个应用场景：如果post请求时提交表单，提交完之后redirect到一个显示订单的页面
+		// 此时需要知道一些订单的信息，但redirect本身没有提交参数的功能，如果像床底阐述，那么就必须要写到url，而url有长度限制同事还容易对外暴露，此时
+		// 可以使用flashMap传递参数
 		if (this.flashMapManager != null) {
 			FlashMap inputFlashMap = this.flashMapManager.retrieveAndUpdate(request, response);
 			if (inputFlashMap != null) {
@@ -970,12 +976,15 @@ public class DispatcherServlet extends FrameworkServlet {
 		}
 
 		try {
+			// 执行请求分发
 			doDispatch(request, response);
 		}
 		finally {
+			// 异常处理相关
 			if (!WebAsyncUtils.getAsyncManager(request).isConcurrentHandlingStarted()) {
 				// Restore the original attribute snapshot, in case of an include.
 				if (attributesSnapshot != null) {
+					// 还原request属性快照
 					restoreAttributesAfterInclude(request, attributesSnapshot);
 				}
 			}
@@ -1031,55 +1040,77 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * @throws Exception in case of any kind of processing failure
 	 */
 	protected void doDispatch(HttpServletRequest request, HttpServletResponse response) throws Exception {
+		// 实际处理时所用的热曲饿色特，如果不是上传请求，则直接使用接受到的request，否则封装成上传类型的request
 		HttpServletRequest processedRequest = request;
+		// 处理请求的处理器链（包含处理器和对应的interceptor）
 		HandlerExecutionChain mappedHandler = null;
+		// 是不是上传请求的标志
 		boolean multipartRequestParsed = false;
 
+		// 获取异步管理器
 		WebAsyncManager asyncManager = WebAsyncUtils.getAsyncManager(request);
 
 		try {
+			// 封装model和view的容器
 			ModelAndView mv = null;
+			// 处理请求过程中抛出的异常，但是不好含渲染过程中抛出的异常
 			Exception dispatchException = null;
 
 			try {
+				// 检测请求是否为上传请求，如果时则通过multipartResolver将其封装成MultipartHttpServletRequest对象
 				processedRequest = checkMultipart(request);
+				// 设置上传请求的标志
 				multipartRequestParsed = (processedRequest != request);
 
 				// Determine handler for the current request.
+				// 获取请求对应的HandlerExecutionChain对象（HandlerMethod和HandlerInterceptor拦截器）
 				mappedHandler = getHandler(processedRequest);
+				// 如果获取不到，则根据配置抛出异常或返回404错误
 				if (mappedHandler == null) {
 					noHandlerFound(processedRequest, response);
 					return;
 				}
 
 				// Determine handler adapter for the current request.
+				// 获取当前handler对应的HandlerAdapter对象
 				HandlerAdapter ha = getHandlerAdapter(mappedHandler.getHandler());
 
 				// Process last-modified header, if supported by the handler.
+				// 处理GET、HEAD请求的Last-Modified，当浏览器第一次跟服务器请求资源，服务器会在返回的请求里包含一个last——modified属性
+				// 代表资源最后是什么时候修改的，在浏览器以后发送请求的时候，会同时发送之前的Last_modified 服务器接收到带last_modified的请求后
+				// 会跟实际资源的最后修改时间做对比，如果过期了返回新的资源，否则直接返回304表示未过期，直接使用之前缓存过的结果即可
 				String method = request.getMethod();
 				boolean isGet = HttpMethod.GET.matches(method);
 				if (isGet || HttpMethod.HEAD.matches(method)) {
+					// 获取请求中服务器端最后修改时间
 					long lastModified = ha.getLastModified(request, mappedHandler.getHandler());
 					if (new ServletWebRequest(request, response).checkNotModified(lastModified) && isGet) {
 						return;
 					}
 				}
 
+				// 执行想用的Interceptor的preHandler
+				// 注意：该方法如果有一个拦截器的前置处理返回false，则开始倒序触发所有的拦截器，已完成处理
 				if (!mappedHandler.applyPreHandle(processedRequest, response)) {
 					return;
 				}
 
 				// Actually invoke the handler.
+				// 真正调用handler方法，也即是执行对应的方法，并返回视图
 				mv = ha.handle(processedRequest, response, mappedHandler.getHandler());
 
+				// 如果需要异步处理，直接返回
 				if (asyncManager.isConcurrentHandlingStarted()) {
 					return;
 				}
 
+				// 当view为空，根据request设置默认的view
 				applyDefaultViewName(processedRequest, mv);
+				// 执行相应的interceptor的postHandler方法
 				mappedHandler.applyPostHandle(processedRequest, response, mv);
 			}
 			catch (Exception ex) {
+				// 记录异常
 				dispatchException = ex;
 			}
 			catch (Throwable err) {
@@ -1087,12 +1118,15 @@ public class DispatcherServlet extends FrameworkServlet {
 				// making them available for @ExceptionHandler methods and other scenarios.
 				dispatchException = new NestedServletException("Handler dispatch failed", err);
 			}
+			// 处理返回结果，包括处理异常，渲染页面，触发Interceptor的afterCompletion
 			processDispatchResult(processedRequest, response, mappedHandler, mv, dispatchException);
 		}
 		catch (Exception ex) {
+			// 已完成处理，拦截器
 			triggerAfterCompletion(processedRequest, response, mappedHandler, ex);
 		}
 		catch (Throwable err) {
+			// 完成处理激活触发器
 			triggerAfterCompletion(processedRequest, response, mappedHandler,
 					new NestedServletException("Handler processing failed", err));
 		}
