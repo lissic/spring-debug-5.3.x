@@ -142,6 +142,7 @@ public abstract class AbstractUrlHandlerMapping extends AbstractHandlerMapping i
 	@Override
 	@Nullable
 	protected Object getHandlerInternal(HttpServletRequest request) throws Exception {
+		// 截取用于匹配的URL有效路径
 		String lookupPath = initLookupPath(request);
 		Object handler;
 		if (usesPathPatterns()) {
@@ -149,15 +150,20 @@ public abstract class AbstractUrlHandlerMapping extends AbstractHandlerMapping i
 			handler = lookupHandler(path, lookupPath, request);
 		}
 		else {
+			// 根据路径寻找handler，此处并不是直接从map中获取，很多handler都有通配符的写法，甚至有多个匹配项，此时需要做好选择
 			handler = lookupHandler(lookupPath, request);
 		}
+		// 如果找不到处理器，则使用rootHandler或defaultHandler处理器
 		if (handler == null) {
 			// We need to care for the default handler directly, since we need to
 			// expose the PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE for it as well.
 			Object rawHandler = null;
+			// 如果路径是根路径，则使用rootHandler处理器
 			if (StringUtils.matchesCharacter(lookupPath, '/')) {
+				// 如果请求的路径仅仅是”/“，那么使用RootHandler进行处理
 				rawHandler = getRootHandler();
 			}
+			// 如果无法找到handler，则使用默认的handler
 			if (rawHandler == null) {
 				rawHandler = getDefaultHandler();
 			}
@@ -193,9 +199,12 @@ public abstract class AbstractUrlHandlerMapping extends AbstractHandlerMapping i
 		}
 
 		// Pattern match?
+		// 通过表达式进行具体匹配，具体通过antPathMatcher实现
 		List<PathPattern> matches = null;
+		// 情况二，Pattern匹配合适的，并添加到matchingPatterns中
 		for (PathPattern pattern : this.pathPatternHandlerMap.keySet()) {
 			if (pattern.matches(path.pathWithinApplication())) {
+				// 路径通过Pattern匹配成功
 				matches = (matches != null ? matches : new ArrayList<>());
 				matches.add(pattern);
 			}
@@ -299,14 +308,18 @@ public abstract class AbstractUrlHandlerMapping extends AbstractHandlerMapping i
 
 	@Nullable
 	private Object getDirectMatch(String urlPath, HttpServletRequest request) throws Exception {
+		// 直接根据url进行查找handler
 		Object handler = this.handlerMap.get(urlPath);
 		if (handler != null) {
 			// Bean name or resolved handler?
+			// 如果找到的处理器是String类型，则从容器中找到该beanName对应的Bean作为处理器
 			if (handler instanceof String) {
 				String handlerName = (String) handler;
 				handler = obtainApplicationContext().getBean(handlerName);
 			}
+			// 空方法，校验处理器。目前暂无子类实现该方法
 			validateHandler(handler, request);
+			// 创建处理器
 			return buildPathExposingHandler(handler, urlPath, urlPath, null);
 		}
 		return null;
