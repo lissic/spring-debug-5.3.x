@@ -969,13 +969,17 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 
 	private WebDataBinderFactory getDataBinderFactory(HandlerMethod handlerMethod) throws Exception {
 		Class<?> handlerType = handlerMethod.getBeanType();
+		// 检查当前Handler中的initBinder方法是否存在于缓存中
 		Set<Method> methods = this.initBinderCache.get(handlerType);
+		// 如果没有则查找并设置到缓存中
 		if (methods == null) {
 			methods = MethodIntrospector.selectMethods(handlerType, INIT_BINDER_METHODS);
 			this.initBinderCache.put(handlerType, methods);
 		}
+		// 定义保存initBinderMethods方法的临时变量
 		List<InvocableHandlerMethod> initBinderMethods = new ArrayList<>();
 		// Global methods first
+		// 将所有符合条件的全局InitBinder方法添加到initBinderMethods中
 		this.initBinderAdviceCache.forEach((controllerAdviceBean, methodSet) -> {
 			if (controllerAdviceBean.isApplicableToBeanType(handlerType)) {
 				Object bean = controllerAdviceBean.resolveBean();
@@ -984,10 +988,14 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 				}
 			}
 		});
+		// 将当前handler中的initBinder方法添加到initBinderMethod中
 		for (Method method : methods) {
+			// 创建当前方法对应的bean对象
 			Object bean = handlerMethod.getBean();
+			// 将method适配为可执行的invocableHandlerMethod
 			initBinderMethods.add(createInitBinderMethod(bean, method));
 		}
+		// 创建DataBinderFactory并返回
 		return createDataBinderFactory(initBinderMethods);
 	}
 
