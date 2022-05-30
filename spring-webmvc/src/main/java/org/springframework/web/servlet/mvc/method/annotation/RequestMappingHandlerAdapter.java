@@ -871,13 +871,17 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 
 			// 创建ServletInvocableHandlerMethod对象，并设置相关属性，实际的请求处理就是通过此对象来完成的
 			ServletInvocableHandlerMethod invocableMethod = createInvocableHandlerMethod(handlerMethod);
+			// 设置参数处理器
 			if (this.argumentResolvers != null) {
 				invocableMethod.setHandlerMethodArgumentResolvers(this.argumentResolvers);
 			}
+			// 设置返回值处理器
 			if (this.returnValueHandlers != null) {
 				invocableMethod.setHandlerMethodReturnValueHandlers(this.returnValueHandlers);
 			}
+			// 设置参数绑定工厂
 			invocableMethod.setDataBinderFactory(binderFactory);
+			// 设置参数名称发现器
 			invocableMethod.setParameterNameDiscoverer(this.parameterNameDiscoverer);
 
 			// 创建ModelAndViewContainer对象，并初始其相关属性

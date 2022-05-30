@@ -134,10 +134,12 @@ public class InvocableHandlerMethod extends HandlerMethod {
 	public Object invokeForRequest(NativeWebRequest request, @Nullable ModelAndViewContainer mavContainer,
 			Object... providedArgs) throws Exception {
 
+		// 准备方法所需的参数
 		Object[] args = getMethodArgumentValues(request, mavContainer, providedArgs);
 		if (logger.isTraceEnabled()) {
 			logger.trace("Arguments: " + Arrays.toString(args));
 		}
+		// 具体调用方法
 		return doInvoke(args);
 	}
 
@@ -150,19 +152,24 @@ public class InvocableHandlerMethod extends HandlerMethod {
 	protected Object[] getMethodArgumentValues(NativeWebRequest request, @Nullable ModelAndViewContainer mavContainer,
 			Object... providedArgs) throws Exception {
 
+		// 获取方法参数
 		MethodParameter[] parameters = getMethodParameters();
 		if (ObjectUtils.isEmpty(parameters)) {
 			return EMPTY_ARGS;
 		}
 
+		// 用于保存解析出参数的值
 		Object[] args = new Object[parameters.length];
 		for (int i = 0; i < parameters.length; i++) {
 			MethodParameter parameter = parameters[i];
+			// 给parameter设置参数名解析器
 			parameter.initParameterNameDiscovery(this.parameterNameDiscoverer);
+			// 如果相应类型的参数已经在provideArgs中提供了，则直接设置到parameter
 			args[i] = findProvidedArgument(parameter, providedArgs);
 			if (args[i] != null) {
 				continue;
 			}
+			// 使用argumentResolver解析参数
 			if (!this.resolvers.supportsParameter(parameter)) {
 				throw new IllegalStateException(formatArgumentError(parameter, "No suitable resolver"));
 			}
@@ -188,12 +195,14 @@ public class InvocableHandlerMethod extends HandlerMethod {
 	 */
 	@Nullable
 	protected Object doInvoke(Object... args) throws Exception {
+		// 强制方法可调用
 		Method method = getBridgedMethod();
 		ReflectionUtils.makeAccessible(method);
 		try {
 			if (KotlinDetector.isSuspendingFunction(method)) {
 				return CoroutinesUtils.invokeSuspendingFunction(method, getBean(), args);
 			}
+			// 执行
 			return method.invoke(getBean(), args);
 		}
 		catch (IllegalArgumentException ex) {

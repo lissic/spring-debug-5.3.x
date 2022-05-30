@@ -107,10 +107,13 @@ public final class ModelFactory {
 	public void initModel(NativeWebRequest request, ModelAndViewContainer container, HandlerMethod handlerMethod)
 			throws Exception {
 
+		// 从SessionAttribute中取出保存的参数，并合并到mavContainer中
 		Map<String, ?> sessionAttributes = this.sessionAttributesHandler.retrieveAttributes(request);
 		container.mergeAttributes(sessionAttributes);
+		// 执行注释了@ModelAttribute的方法并将结果设置到model中
 		invokeModelAttributeMethods(request, container);
 
+		// 遍历既注释了@ModelAttribute又在@SessionAttributes注释中的参数
 		for (String name : findSessionAttributeArguments(handlerMethod)) {
 			if (!container.containsAttribute(name)) {
 				Object value = this.sessionAttributesHandler.retrieveAttribute(request, name);
@@ -130,9 +133,12 @@ public final class ModelFactory {
 			throws Exception {
 
 		while (!this.modelMethods.isEmpty()) {
+			// 获取注释了@ModelAttribute的方法
 			InvocableHandlerMethod modelMethod = getNextModelMethod(container).getHandlerMethod();
+			// 获取注释了@ModelAttribute中设置的value作为参数名
 			ModelAttribute ann = modelMethod.getMethodAnnotation(ModelAttribute.class);
 			Assert.state(ann != null, "No ModelAttribute annotation");
+			// 如果参数名已经在mavContainer中则跳过
 			if (container.containsAttribute(ann.name())) {
 				if (!ann.binding()) {
 					container.setBindingDisabled(ann.name());
@@ -140,7 +146,10 @@ public final class ModelFactory {
 				continue;
 			}
 
+			// container不包含参数名，执行方法
 			Object returnValue = modelMethod.invokeForRequest(request, container);
+			// 判断返回值是否是void类型，如果是，方法自己将参数设置到model中，不处理
+			// 如果不是，使用getNameForReturnValue获取参数名
 			if (modelMethod.isVoid()) {
 				if (StringUtils.hasText(ann.value())) {
 					if (logger.isDebugEnabled()) {
@@ -151,10 +160,12 @@ public final class ModelFactory {
 				continue;
 			}
 
+			// 使用getNameForReturnValue获取参数名
 			String returnValueName = getNameForReturnValue(returnValue, modelMethod.getReturnType());
 			if (!ann.binding()) {
 				container.setBindingDisabled(returnValueName);
 			}
+			// 如果不存在container，添加进去
 			if (!container.containsAttribute(returnValueName)) {
 				container.addAttribute(returnValueName, returnValue);
 			}
@@ -178,11 +189,16 @@ public final class ModelFactory {
 	 */
 	private List<String> findSessionAttributeArguments(HandlerMethod handlerMethod) {
 		List<String> result = new ArrayList<>();
+		// 遍历方法中的参数
 		for (MethodParameter parameter : handlerMethod.getMethodParameters()) {
+			// 如果又@ModelAttribute注解
 			if (parameter.hasParameterAnnotation(ModelAttribute.class)) {
+				// 获取参数名和参数类型
 				String name = getNameForParameter(parameter);
 				Class<?> paramType = parameter.getParameterType();
+				// 根据获取到的参数名和参数类型检查参数是否在@SessionAttributes注解中
 				if (this.sessionAttributesHandler.isHandlerSessionAttribute(name, paramType)) {
+					// 如果在@SessionAttributes注解中，即为符合要求的参数，将参数名放入集合
 					result.add(name);
 				}
 			}
