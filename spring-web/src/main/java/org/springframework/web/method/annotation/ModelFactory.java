@@ -214,13 +214,17 @@ public final class ModelFactory {
 	 * @throws Exception if creating BindingResult attributes fails
 	 */
 	public void updateModel(NativeWebRequest request, ModelAndViewContainer container) throws Exception {
+		// 获取defaultModel
 		ModelMap defaultModel = container.getDefaultModel();
+		// 对SessionAttributes进行设置，如果处理器里调用了setComplete则将SessionAttribute清空，否则将SessionAttribute中的参数设置到SessionAttribute中
 		if (container.getSessionStatus().isComplete()){
 			this.sessionAttributesHandler.cleanupAttributes(request);
 		}
+		// 将mavContainer的defaultModel中的参数设置到SessionAttribute
 		else {
 			this.sessionAttributesHandler.storeAttributes(request, defaultModel);
 		}
+		// 判断请求是否已经完成或者是redirect类型的返回值，其实就是判断是否需要进行页面的渲染操作
 		if (!container.isRequestHandled() && container.getModel() == defaultModel) {
 			updateBindingResult(request, defaultModel);
 		}
@@ -233,10 +237,15 @@ public final class ModelFactory {
 		List<String> keyNames = new ArrayList<>(model.keySet());
 		for (String name : keyNames) {
 			Object value = model.get(name);
+			// 遍历每一个Model中保存的参数，判断是否需要添加BindingResult，如果需要则使用WebDataBinder获取BindingResult并添加到Model
+			// 在添加前检查Model中是否已经存在，如果已经存在就不添加
 			if (value != null && isBindingCandidate(name, value)) {
 				String bindingResultKey = BindingResult.MODEL_KEY_PREFIX + name;
+				// 如果model中不存在bingingResult
 				if (!model.containsAttribute(bindingResultKey)) {
+					// 通过dataBinderFactory创建webDataBinder
 					WebDataBinder dataBinder = this.dataBinderFactory.createBinder(request, value, name);
+					// 添加到model
 					model.put(bindingResultKey, dataBinder.getBindingResult());
 				}
 			}

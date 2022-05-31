@@ -922,6 +922,10 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 			}
 
 			// 获得ModelAndView对象
+			// 处理完请求后的后置处理，此处做了三件事：
+			// 1、调用ModelFactory的updateModel方法更新model，包括设置sessionAttribute和给Model设置BinderRequest
+			// 2、根据mavContainer创建了ModelAndView
+			// 3、如果mavContainer里的model是RedirectAttributes类型，则将其设置到flashMap
 			return getModelAndView(mavContainer, modelFactory, webRequest);
 		}
 		finally {
@@ -1040,12 +1044,17 @@ public class RequestMappingHandlerAdapter extends AbstractHandlerMethodAdapter
 	private ModelAndView getModelAndView(ModelAndViewContainer mavContainer,
 			ModelFactory modelFactory, NativeWebRequest webRequest) throws Exception {
 
+		// 更新model（设置sessionAttributes和给model设置BinderResult）
 		modelFactory.updateModel(webRequest, mavContainer);
+		// 如果mavContainer已经处理，则返回null
 		if (mavContainer.isRequestHandled()) {
 			return null;
 		}
+		// 如果mavContainer未处理，则基于mavContainer生成modelAndView对象
 		ModelMap model = mavContainer.getModel();
+		// 创建ModelAndView对象，并设置相关属性
 		ModelAndView mav = new ModelAndView(mavContainer.getViewName(), model, mavContainer.getStatus());
+		// 如果mavContainer的view不是引用，也就是不是String，则设置到mv中
 		if (!mavContainer.isViewReference()) {
 			mav.setView((View) mavContainer.getView());
 		}
